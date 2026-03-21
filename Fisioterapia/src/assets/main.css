@@ -1,0 +1,102 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body {
+    overflow: hidden;
+}
+.style_scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #cad4db transparent;
+}
+.button-primary {
+    @apply bg-blue-600 p-3 pr-6 pl-6 font-poppins text-white rounded-[3px];
+}
+.button-primary:hover {
+    @apply bg-opacity-95;
+}
+
+.button-disabled {
+    @apply bg-[#238dff];
+}
+
+.input-primary{
+    @apply hover:border-blue-300 border border-gray-300 text-gray-900 text-sm rounded-[3px] focus:ring-blue-500 focus:border-blue-500 block focus:text-blue-900  w-full p-2.5
+}
+
+.inactive-input{
+    opacity: .8;
+    @apply hover:border-blue-600 border border-gray-300 text-black text-sm rounded-[3px] focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5
+}
+
+.swal2-styled:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200%;
+    }
+    100% {
+        background-position: 200%;
+    }
+}
+
+/* Efecto shimmer solo para el texto */
+.shimmer-text {
+    display: inline-block;
+    background: linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.1) 0%,
+            rgba(255, 255, 255, 0.2) 50%,
+            rgba(255, 255, 255, 0.1) 100%
+    );
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmer 3s linear infinite;
+}
+
+.shimmer-black {
+    display: inline-block;
+    background: linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0) 0%,
+            rgba(0, 0, 0, .8) 50%,
+            rgba(0, 0, 0, 0) 100%
+    );
+    background-size: 200% auto;
+    color: #000000; /* Mantener color de texto */
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shimmer 3s linear infinite;
+}
+
+.grid-center {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    box-shadow: 0 0 0 1.5px #758CA3;
+    border-radius: 50%;
+}
+
+.grid-center:hover {
+    box-shadow: 0 0 0 1.5px #C27803;
+}
+
+.grid-center2 {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    box-shadow: 0 0 0 1.5px #758CA3;
+    border-radius: 50%;
+}
+
+.grid-center2:hover {
+    box-shadow: 0 0 0 1.5px #3F83F8;
+}
