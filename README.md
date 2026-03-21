@@ -27,11 +27,31 @@ git clone https://github.com/FernandoReyes04/Fisio_Plataforma.git
 cd Fisio_Plataforma
 ```
 
+---
+
+## 2.1) Estrategia de ramas (importante)
+
+Este repositorio maneja dos ramas con objetivos distintos:
+
+- `main` → **Plataforma limpia** (Frontend + Backend), sin artefactos de pruebas ni respaldos SQL.
+- `test` → **Plataforma + pruebas + respaldos** (incluye E2E, reportes y `db_backups/`).
+
+### ¿Qué rama usar?
+
+- Si vas a trabajar despliegue/entorno estable: usa `main`.
+- Si vas a ejecutar pruebas E2E o cargar respaldos de ejemplo: usa `test`.
+
+```bash
+git checkout main
+# o
+git checkout test
+```
+
 La estructura principal del repo es:
 
 - `Fisioterapia/` → Frontend (Vue + Vite)
 - `FisioterapiaBack/` → Backend (.NET 8)
-- `db_backups/` → Scripts SQL de respaldo/seed
+- `db_backups/` → Scripts SQL de respaldo/seed (**solo en rama `test`**)
 
 ---
 
@@ -54,6 +74,8 @@ CREATE DATABASE fisio;
 ```
 
 ### Paso 3.2 Importar datos iniciales (opcional pero recomendado)
+
+> Esta sección aplica cuando trabajas en rama `test` (ahí vive `db_backups/`).
 
 Desde terminal (ajusta password/archivo si lo necesitas):
 
@@ -226,4 +248,14 @@ Abre: `http://localhost:5173`
 
 ---
 
-Si quieres, en un siguiente paso se puede agregar Docker Compose para levantar MySQL + Backend + Frontend con un solo comando.
+## 11) Siguiente paso (roadmap inmediato)
+
+Próximo objetivo: **preparar configuración de servidor y dockerizar el proyecto paso a paso**.
+
+Plan propuesto:
+
+1. Definir variables de entorno por servicio (frontend/backend/db).
+2. Ajustar configuración de servidor para entorno nuevo.
+3. Crear `Dockerfile` para frontend y backend.
+4. Crear `docker-compose.yml` para levantar MySQL + Backend + Frontend.
+5. Documentar flujo de despliegue.
