@@ -41,3 +41,4 @@ login-error.png
 # Backups y dumps
 db_backups/
 *.sql
+node_modules
