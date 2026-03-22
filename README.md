@@ -57,15 +57,19 @@ La estructura principal del repo es:
 
 ## 3) Configurar base de datos (MySQL)
 
-El backend está configurado por defecto para conectarse a:
+El backend está preparado para despliegue y usa placeholders en:
 
-- Host: `127.0.0.1`
+- `FisioterapiaBack/Presentation/appsettings.json`
+
+Valores actuales en repo (debes reemplazarlos para tu entorno):
+
+- Host DB: `IP_O_HOST_DB`
 - Puerto: `3306`
 - Base de datos: `fisio`
-- Usuario: `root`
-- Password: `admin`
+- Usuario: `USUARIO_DB`
+- Password: `PASSWORD_DB`
 
-(Ver `FisioterapiaBack/Presentation/appsettings.json` en `ConnectionStrings:ConexionMaestra`)
+Para desarrollo local, puedes usar temporalmente tu conexión local (por ejemplo `127.0.0.1`).
 
 ### Paso 3.1 Crear la BD
 
@@ -140,14 +144,16 @@ npm install
 
 Archivo: `Fisioterapia/.env`
 
-Valores esperados por defecto:
+Valores actuales para despliegue:
 
 ```env
-VITE_API_URL=http://localhost:5223
-VITE_API_LOCAL=http://localhost:5223
+VITE_API_URL=http://IP_DEL_SERVIDOR:5223
+VITE_API_LOCAL=http://IP_DEL_SERVIDOR:5223
 VITE_CREDENCIALES=Credenciales
 VITE_USUARIO=Usuario
 ```
+
+Para local, puedes usar `http://localhost:5223`.
 
 ### Paso 5.4 Ejecutar frontend
 
@@ -248,14 +254,45 @@ Abre: `http://localhost:5173`
 
 ---
 
-## 11) Siguiente paso (roadmap inmediato)
+## 11) Fase 0 de despliegue (Docker) — implementada
 
-Próximo objetivo: **preparar configuración de servidor y dockerizar el proyecto paso a paso**.
+La base de contenedorización ya está integrada en el repo:
 
-Plan propuesto:
+- `docker-compose.yml`
+- `Fisioterapia/Dockerfile`
+- `Fisioterapia/nginx.conf`
+- `FisioterapiaBack/Presentation/Dockerfile`
+- `FisioterapiaBack/Presentation/Program.cs` (CORS con `IP_DEL_SERVIDOR`)
 
-1. Definir variables de entorno por servicio (frontend/backend/db).
-2. Ajustar configuración de servidor para entorno nuevo.
-3. Crear `Dockerfile` para frontend y backend.
-4. Crear `docker-compose.yml` para levantar MySQL + Backend + Frontend.
-5. Documentar flujo de despliegue.
+### Antes de desplegar
+
+1. Reemplaza placeholders en:
+  - `Fisioterapia/.env` (`IP_DEL_SERVIDOR`)
+  - `FisioterapiaBack/Presentation/appsettings.json` (`IP_O_HOST_DB`, `USUARIO_DB`, `PASSWORD_DB`, `IP_DEL_SERVIDOR`)
+  - `FisioterapiaBack/Presentation/Program.cs` (`http://IP_DEL_SERVIDOR` en CORS)
+2. Confirma que no queden placeholders:
+
+```bash
+grep -R "IP_DEL_SERVIDOR\|IP_O_HOST_DB\|USUARIO_DB\|PASSWORD_DB" Fisioterapia/.env FisioterapiaBack/Presentation/appsettings.json FisioterapiaBack/Presentation/Program.cs
+```
+
+### Validación con Docker
+
+Desde la raíz del repo:
+
+```bash
+docker compose build
+docker compose up -d
+docker compose ps
+```
+
+Validar endpoints:
+
+- Frontend: `http://localhost`
+- Backend Swagger: `http://localhost:5223/swagger`
+
+Para detener:
+
+```bash
+docker compose down
+```
