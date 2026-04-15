@@ -45,7 +45,7 @@ public record DiagnosticGetHandler : IRequestHandler<DiagnosticGet, GeneralDiagn
             UltimaRevision = revision.Fecha,
             DynamicSections = string.IsNullOrWhiteSpace(diagnostic.SeccionesDinamicasJson)
                 ? new List<DynamicSectionResponse>()
-                : JsonConvert.DeserializeObject<List<DynamicSectionResponse>>(diagnostic.SeccionesDinamicasJson) ?? new List<DynamicSectionResponse>(),
+                : System.Text.Json.JsonSerializer.Deserialize<List<DynamicSectionResponse>>(diagnostic.SeccionesDinamicasJson) ?? new List<DynamicSectionResponse>(),
             diagnostic = new GetDiagnostic
             {
                 Refiere = diagnostic.Refiere,
@@ -118,7 +118,7 @@ public record DynamicSectionResponse
     public bool EsObligatoria { get; set; }
     public bool EsSistema { get; set; }
     public int Orden { get; set; }
-    public object? Respuesta { get; set; }
+    public System.Text.Json.JsonElement? Respuesta { get; set; }
 }
 
 public record GetDiagnostic()

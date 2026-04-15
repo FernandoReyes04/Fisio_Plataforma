@@ -81,7 +81,7 @@ public record DynamicSectionPost()
     public bool EsObligatoria { get; set; }
     public bool EsSistema { get; set; }
     public int Orden { get; set; }
-    public object? Respuesta { get; set; }
+    public System.Text.Json.JsonElement? Respuesta { get; set; }
 }
 
 public record GeneralDiagnosticPost() : IRequest
@@ -171,7 +171,7 @@ public class PostDiagnosticHanlder : IRequestHandler<GeneralDiagnosticPost>
                     DiagnosticoNosologico = request.Diagnostic.DiagnosticoNosologico,
                     SeccionesDinamicasJson = request.DynamicSections == null || !request.DynamicSections.Any()
                         ? null
-                        : JsonConvert.SerializeObject(request.DynamicSections),
+                        : System.Text.Json.JsonSerializer.Serialize(request.DynamicSections),
                     Estatus = true,
                     FechaInicio = FormatDate.DateLocal(),
                     ProgramaFisioterapeuticoId = program.ProgramaFisioterapeuticoId,
