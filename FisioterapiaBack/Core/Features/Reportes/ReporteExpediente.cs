@@ -333,8 +333,9 @@ public class ReporteExpedienteHandler : IRequestHandler<ReporteExpediente, Repor
             secciones = JsonConvert.DeserializeObject<List<DynamicSectionPdfItem>>(diagnostico.SeccionesDinamicasJson)
                 ?? new List<DynamicSectionPdfItem>();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine("ERROR SeccionesDinamicas deserialize: " + ex.Message);
             return null;
         }
 
@@ -346,24 +347,50 @@ public class ReporteExpedienteHandler : IRequestHandler<ReporteExpediente, Repor
         if (!visibles.Any())
             return null;
 
+        BaseFont baseFont = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+        BaseFont fontResponse = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
+        Font tituloFont = new Font(baseFont, 12, Font.BOLD);
+        Font respuestaFont = new Font(fontResponse, 10);
+
+        Paragraph encabezado = new Paragraph("SECCIONES DINAMICAS\n", FontFactory.GetFont(FontFactory.TIMES_ROMAN, 14));
+        doc.Add(encabezado);
+
         var table = new PdfPTable(1)
         {
             WidthPercentage = 100,
-            HeaderRows = 1,
-            SpacingBefore = 20,
+            SpacingBefore = 10,
             SpacingAfter = 10
         };
 
-        BaseFont baseFont = BaseFont.CreateFont(BaseFont.TIMES_ROMAN, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
-        BaseFont fontResponse = BaseFont.CreateFont(BaseFont.HELVETICA, BaseFont.CP1252, BaseFont.NOT_EMBEDDED);
-
-        Paragraph encabezado = new Paragraph("SECCIONES DINÁMICAS\n", FontFactory.GetFont(FontFactory.TIMES_ROMAN, 14));
-        doc.Add(encabezado);
-
         foreach (var seccion in visibles)
         {
-            _utilPdf.CellEdit(table, seccion.Titulo, baseFont, 12, 1, 1, true, true, 16f, 1, 1, 0, 1, true);
-            _utilPdf.CellEdit(table, FormatearRespuestaDinamica(seccion.Respuesta, seccion.TipoRespuesta), fontResponse, 10, 1, 1, true, true, 16f, 0, 1, 1, 1, false);
+            var respuesta = FormatearRespuestaDinamica(seccion.Respuesta, seccion.TipoRespuesta);
+
+            var cellTitulo = new PdfPCell(new Phrase(seccion.Titulo, tituloFont))
+            {
+                BorderWidthTop = 1,
+                BorderWidthLeft = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 0,
+                PaddingTop = 6f,
+                PaddingBottom = 4f,
+                PaddingLeft = 4f,
+                MinimumHeight = 16f
+            };
+            table.AddCell(cellTitulo);
+
+            var cellRespuesta = new PdfPCell(new Phrase(respuesta, respuestaFont))
+            {
+                BorderWidthTop = 0,
+                BorderWidthLeft = 1,
+                BorderWidthRight = 1,
+                BorderWidthBottom = 1,
+                PaddingTop = 4f,
+                PaddingBottom = 8f,
+                PaddingLeft = 4f,
+                MinimumHeight = 40f
+            };
+            table.AddCell(cellRespuesta);
         }
 
         return table;

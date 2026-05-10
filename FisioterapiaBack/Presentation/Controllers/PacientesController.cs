@@ -87,6 +87,6 @@ public class PacientesController : ControllerBase
     public async Task<IActionResult> ModificacionPaciente([FromForm] ModificarPaciente command)
     {
         await _mediator.Send(command);
-        return Ok("Se modifico el paciente correctamente");
+        return Ok(new { message = "Se modifico el paciente correctamente" });
     }
 }

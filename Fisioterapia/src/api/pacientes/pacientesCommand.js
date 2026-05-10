@@ -60,12 +60,12 @@ export const pacientesCommand = {
 
          const [data, config] = autorizationFormData(formData)
          let response = await axios.patch(apiUrl + '/Pacientes', data, config)
-         await NotificacionesModal.ExitosoSimple(response.data, 'Aceptar')
+         await NotificacionesModal.ExitosoSimple(response.data.message, 'Aceptar')
 
          irPacientes()
          return null
       } catch (error) {
-         await NotificacionesModal.PantallaError(error.response.data.detail)
+         await NotificacionesModal.PantallaError(error?.response?.data?.detail || 'Error al actualizar el paciente')
       }
    },
 
@@ -262,7 +262,7 @@ export const pacientesCommand = {
          await NotificacionesModal.ExitosoSimple('Datos actualizados con éxito', 'Aceptar')
          return true
       } catch (error) {
-         await NotificacionesModal.PantallaError(error.response.data.detail)
+         await NotificacionesModal.PantallaError(error?.response?.data?.detail || 'Error al actualizar los datos')
       }
 
    },

@@ -16,13 +16,18 @@ builder.Services.AddCors(options =>
         policy.WithOrigins(
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "http://IP_DEL_SERVIDOR")
+                "http://clinicadefisioterapia.uacam.mx")
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
     });
 });
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.NumberHandling = 
+            System.Text.Json.Serialization.JsonNumberHandling.AllowReadingFromString;
+    });
 builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Usuario).Assembly));
 builder.Services.AddPresentationServices(builder.Configuration);
 builder.Services.AddSecurity(builder.Configuration);
@@ -45,7 +50,9 @@ app.UseSwaggerUI(c => {
     c.InjectStylesheet("/swagger-ui/custom.css");
 });
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
+
+app.UseRouting();
 
 app.UseCors("FisioPolicy");
 
