@@ -36,13 +36,14 @@ public class GetPatientsHandler : IRequestHandler<GetPatients, GetPatientsRespon
         var patients = await query
             .Include(x => x.Fisioterapeuta)
             .Include(x => x.Expediente)
-            .OrderBy(x => x.Nombre)
+            .OrderBy(x => x.Apellido)
+            .ThenBy(x => x.Nombre)
             .Skip((pagina - 1) * 10)
             .Take(10)
             .Select(x => new GetPacientesModel()
             {
                 PacienteId = x.PacienteId.HashId(), 
-                Nombre = $"{x.Nombre} {x.Apellido}",
+                Nombre = $"{x.Apellido} {x.Nombre}",
                 Sexo = x.Sexo == true ? "Hombre" : "Mujer",
                 Telefono = x.Telefono,
                 Fisioterapeuta = x.Fisioterapeuta != null ? x.Fisioterapeuta.Nombre : "Sin asignar",

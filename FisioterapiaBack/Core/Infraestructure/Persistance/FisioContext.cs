@@ -370,7 +370,7 @@ public partial class FisioContext : DbContext
             // Configuración de las propiedades de la entidad Paciente
             entity.Property(e => e.Edad)
                 .HasColumnType("date");
-            entity.HasIndex(e => e.Telefono).IsUnique();
+            entity.HasIndex(e => e.Telefono);
             entity.HasIndex(e => new { e.Nombre, e.Apellido }).IsUnique();
             
             // Configuración de las relaciones de la entidad Paciente

@@ -694,8 +694,7 @@ namespace Core.Infraestructure.Persistance.Migrations
 
                     b.HasKey("PacienteId");
 
-                    b.HasIndex("Telefono")
-                        .IsUnique();
+                    b.HasIndex("Telefono");
 
                     b.HasIndex("Nombre", "Apellido")
                         .IsUnique();
