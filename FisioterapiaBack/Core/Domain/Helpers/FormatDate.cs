@@ -47,4 +47,17 @@ public static class FormatDate
         
         return endOfWeek;
     }
+
+    // Calcula el lunes de la semana de cualquier fecha arbitraria
+    public static DateTime StartOfWeekFor(DateTime fecha)
+    {
+        int delta = (fecha.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)fecha.DayOfWeek) - (int)DayOfWeek.Monday;
+        return fecha.Date.AddDays(-delta);
+    }
+
+    // Calcula el domingo de la semana de cualquier fecha arbitraria
+    public static DateTime EndOfWeekFor(DateTime fecha)
+    {
+        return StartOfWeekFor(fecha).AddDays(6);
+    }
 }

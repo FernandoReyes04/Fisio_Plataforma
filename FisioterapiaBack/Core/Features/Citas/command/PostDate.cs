@@ -78,13 +78,21 @@ public class PostDateHandler : IRequestHandler<PostDate>
         if (citas != null)
             throw new BadRequestException(Message.GRAL_0003);
         
-        //Validamos que el usuario no pueda agendar mas de 3 citas a la semana
+        // Validamos que el paciente no tenga más de 3 citas en la semana del appointment.
+        // Se usa StartOfWeekFor(Fecha) en lugar de StartOfWeek() para contar la semana
+        // destino, no la semana actual — esto permite agendar semanas futuras sin bloqueo.
+        var inicioSemanaDestino = FormatDate.StartOfWeekFor(Fecha);
+        var finSemanaDestino    = FormatDate.EndOfWeekFor(Fecha);
+
         var citasSemana = await _context.Citas
             .AsNoTracking()
-            .Where(x => x.Fecha.Date >= FormatDate.StartOfWeek().Date && x.Fecha.Date <= FormatDate.EndOfWeek().Date && x.PacienteId == paciente.PacienteId)
+            .Where(x =>
+                x.Fecha.Date >= inicioSemanaDestino.Date &&
+                x.Fecha.Date <= finSemanaDestino.Date &&
+                x.PacienteId == paciente.PacienteId)
             .ToListAsync();
         
-        if(citasSemana.Count >= 3)
+        if (citasSemana.Count >= 3)
             throw new BadRequestException(Message.GRAL_0004);
         
         /* ----------------------------------------- general -------------------------------------------------------- */
