@@ -60,4 +60,12 @@ public static class FormatDate
     {
         return StartOfWeekFor(fecha).AddDays(6);
     }
+    public static string ToSpanishDate(DateTime date)
+{
+    string[] meses = {
+        "enero", "febrero", "marzo", "abril", "mayo", "junio",
+        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"
+    };
+    return $"{date.Day} {meses[date.Month - 1]} {date.Year}";
+}
 }

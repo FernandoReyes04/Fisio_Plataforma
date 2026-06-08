@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Paragraph = iTextSharp.text.Paragraph;
-using System.Globalization;
 
 namespace Core.Features.Reportes;
 
@@ -1095,7 +1094,7 @@ public class ReporteExpedienteHandler : IRequestHandler<ReporteExpediente, Repor
         _utilPdf.AddCellWithOutBorderButton(datosGenerales, "Número de expediente:", baseFont, 14, 2, true);
         _utilPdf.AddCellWithOutBorderButton(datosGenerales, "Fecha:", baseFont, 14, 2, true);
         _utilPdf.AddCellWithOutBorderTop(datosGenerales, exp.Nomenclatura, fontResponse, 10, 2, true);
-        _utilPdf.AddCellWithOutBorderTop(datosGenerales, diag.FechaInicio.ToString("dd MMMM yyyy", new CultureInfo("es-ES")), fontResponse, 10, 2, true);
+        _utilPdf.AddCellWithOutBorderTop(datosGenerales, FormatDate.ToSpanishDate(diag.FechaInicio), fontResponse, 10, 2, true);
         
         //Segunda fila
         _utilPdf.AddCellWithOutBorderButton(datosGenerales, "Diagnóstico:", baseFont, 14, 2, true);
@@ -1150,7 +1149,7 @@ public class ReporteExpedienteHandler : IRequestHandler<ReporteExpediente, Repor
 
         //Primera fila
         _utilPdf.AddCellWithHeigth(datosGenerales, "Fecha:", baseFont, 14, 1, true, true, 80f);
-        _utilPdf.AddCellWithHeigth(datosGenerales, diag.FechaInicio.ToString("dd MMMM yyyy", new CultureInfo("es-ES")), fontResponse, 10, 1, true, false, 80f);
+        _utilPdf.AddCellWithHeigth(datosGenerales, FormatDate.ToSpanishDate(diag.FechaInicio), fontResponse, 10, 1, true, false, 80f);
         
         //Segunda fila
         _utilPdf.AddCellWithHeigth(datosGenerales, "Previo diagnóstico médico", baseFont, 14, 1, true, true, 80f);
