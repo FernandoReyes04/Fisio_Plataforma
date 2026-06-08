@@ -123,10 +123,11 @@ public class ReporteExpedienteHandler : IRequestHandler<ReporteExpediente, Repor
             doc.Add(pruebas(doc, diag));
             doc.Add(nosologico(doc, diag));
             doc.NewPage();
-            doc.Add(programa(doc, diag.ProgramaFisioterapeutico));
-            doc.Add(tratamiento(doc, diag.ProgramaFisioterapeutico));
-            doc.Add(sugerencias(doc, diag.ProgramaFisioterapeutico));
-            doc.Add(pronosticos(doc, diag.ProgramaFisioterapeutico));
+            var progResuelto = ResolveProgramaConDinamicos(diag);
+                doc.Add(programa(doc, progResuelto));
+                doc.Add(tratamiento(doc, progResuelto));
+                doc.Add(sugerencias(doc, progResuelto));
+                doc.Add(pronosticos(doc, progResuelto));
             var seccionesDinamicas = SeccionesDinamicas(doc, diag);
             if (seccionesDinamicas != null)
                 doc.Add(seccionesDinamicas);
@@ -415,7 +416,55 @@ public class ReporteExpedienteHandler : IRequestHandler<ReporteExpediente, Repor
 
         return respuesta.ToString();
     }
+    /// <summary>
+    /// Resuelve los campos del programa fisioterapéutico usando las secciones
+    /// dinámicas como fallback cuando el campo estático está vacío o en "N/A".
+    /// No modifica la entidad original — devuelve un objeto nuevo solo para el PDF.
+    /// </summary>
+    private ProgramaFisioterapeutico ResolveProgramaConDinamicos(Domain.Entities.Diagnostico diag)
+    {
+        var prog = diag.ProgramaFisioterapeutico;
 
+        if (string.IsNullOrWhiteSpace(diag.SeccionesDinamicasJson))
+            return prog;
+
+        Dictionary<string, string> dinamicos;
+        try
+        {
+            var secciones = JsonConvert.DeserializeObject<List<DynamicSectionPdfItem>>(diag.SeccionesDinamicasJson)
+                ?? new List<DynamicSectionPdfItem>();
+            dinamicos = secciones.ToDictionary(
+                s => s.Clave,
+                s => s.Respuesta?.ToString() ?? string.Empty,
+                StringComparer.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return prog;
+        }
+
+        static bool EsVacio(string? val) =>
+            string.IsNullOrWhiteSpace(val) || val.Trim().Equals("N/A", StringComparison.OrdinalIgnoreCase);
+
+        string Resolver(string? valorEstatico, string clave)
+        {
+            if (!EsVacio(valorEstatico)) return valorEstatico!;
+            return dinamicos.TryGetValue(clave, out var dinamico) && !EsVacio(dinamico)
+                ? dinamico
+                : (valorEstatico ?? string.Empty);
+        }
+
+        return new ProgramaFisioterapeutico
+        {
+            ProgramaFisioterapeuticoId  = prog.ProgramaFisioterapeuticoId,
+            CortoPlazo                  = Resolver(prog.CortoPlazo,                  "cortoPlazo"),
+            MedianoPlazo                = Resolver(prog.MedianoPlazo,                "medianoPlazo"),
+            LargoPlazo                  = Resolver(prog.LargoPlazo,                  "largoPlazo"),
+            TratamientoFisioterapeutico = Resolver(prog.TratamientoFisioterapeutico, "tratamientoFisioterapeutico"),
+            Sugerencias                 = Resolver(prog.Sugerencias,                 "sugerencias"),
+            Pronostico                  = Resolver(prog.Pronostico,                  "pronostico"),
+        };
+    }
     private sealed class DynamicSectionPdfItem
     {
         public string Clave { get; set; }
