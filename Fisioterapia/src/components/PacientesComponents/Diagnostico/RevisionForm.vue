@@ -12,7 +12,13 @@ let servicios = ref([])
 let servicio = ref('')
 let folio = ref(null)
 let notas = ref(null)
+let fechaAtencion = ref('')
 
+// Límites del picker: máximo = ahora, mínimo = hace 48 horas
+const ahora = new Date()
+const maxFechaAtencion = ahora.toISOString().slice(0, 16)
+const hace48h = new Date(ahora.getTime() - 48 * 60 * 60 * 1000)
+const minFechaAtencion = hace48h.toISOString().slice(0, 16)
 
 //SIGNOS VITALES
 let temperaturaR = ref(null)
@@ -26,10 +32,10 @@ let indiceCinturaCaderaR = ref(null)
 let saturacionoxigenoR = ref(null)
 let spinner = ref(false)
 
-
 onMounted(()=>{
     getServices()
 })
+
 const getServices = async () =>{
     servicios.value = await catalogosQueries.getServicios(true)
 }
@@ -42,7 +48,6 @@ const isSubmitDisabled = computed(() => {
         !indiceCinturaCaderaR.value || !saturacionoxigenoR.value;
 });
 
-
 const obtenerSignos = (datos) => {
     temperaturaR.value = datos.temperatura
     frR.value = datos.fr
@@ -54,11 +59,25 @@ const obtenerSignos = (datos) => {
     indiceCinturaCaderaR.value = datos.indiceCinturaCadera
     saturacionoxigenoR.value = datos.saturacionOxigeno
 }
+
 const emit = defineEmits(['salir'])
 
 const subirRevision = async () =>{
     spinner.value = true
-   let response = await pacientesCommand.crearRevision(notas.value,folio.value,diagnosticoId.value,servicio.value,frR.value,fcR.value,temperaturaR.value,pesoR.value,estaturaR.value,imcR.value,indiceCinturaCaderaR.value,saturacionoxigenoR.value,presionArterialR.value)
+
+    // Si el usuario seleccionó una fecha, convertirla a ISO. Si no, se envía null
+    // y el servidor usa la fecha actual.
+    const isoFecha = fechaAtencion.value
+        ? new Date(fechaAtencion.value).toISOString()
+        : null
+
+    let response = await pacientesCommand.crearRevision(
+        notas.value, folio.value, diagnosticoId.value, servicio.value,
+        frR.value, fcR.value, temperaturaR.value, pesoR.value, estaturaR.value,
+        imcR.value, indiceCinturaCaderaR.value, saturacionoxigenoR.value, presionArterialR.value,
+        isoFecha
+    )
+
     if (response === true)
         emit('salir')
     spinner.value = false
@@ -75,6 +94,14 @@ const subirRevision = async () =>{
                 <SignosPost @signos="obtenerSignos"/>
             </section>
             <section class="w-5/12 flex flex-col gap-2.5">
+                <p>Fecha de atención <span class="text-gray-400 text-xs">(opcional — por defecto hoy)</span></p>
+                <input
+                    type="datetime-local"
+                    class="input-primary"
+                    v-model="fechaAtencion"
+                    :max="maxFechaAtencion"
+                    :min="minFechaAtencion"
+                />
                 <p>Comprobante de pago <span class="text-blue-600">*</span></p>
                 <input type="text" class="input-primary" placeholder="Escribe aqui el folio de pago" v-model="folio">
                 <p>Observaciones <span class="text-blue-600">*</span></p>
@@ -90,7 +117,6 @@ const subirRevision = async () =>{
                         'cursor-not-allowed': isSubmitDisabled
               }"
                 >
-
                     <svg
                         v-show="spinner"
                         aria-hidden="true"
@@ -101,7 +127,7 @@ const subirRevision = async () =>{
                         xmlns="http://www.w3.org/2000/svg"
                     >
                         <path
-                            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
                             fill="#E5E7EB"
                         />
                         <path

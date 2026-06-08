@@ -390,9 +390,9 @@ export const pacientesCommand = {
       }
    },
 
-   crearRevision: async (notas, folioPago, diagnosticoId, servicioId, fr, fc, temperatura, peso, estatura, imc, indiceCinturaCadera, saturacionOxigeno, presionArterial) => {
+      crearRevision: async (notas, folioPago, diagnosticoId, servicioId, fr, fc, temperatura, peso, estatura, imc, indiceCinturaCadera, saturacionOxigeno, presionArterial, fechaAtencion = null) => {
       try {
-         const JSON = {
+         const payload = {
             notas,
             folioPago,
             diagnosticoId,
@@ -409,7 +409,13 @@ export const pacientesCommand = {
                presionArterial
             }
          }
-         const [data, config] = autorizationJSON(JSON)
+
+         // Solo agregar el campo si el usuario seleccionó una fecha
+         if (fechaAtencion) {
+            payload.fechaAtencion = fechaAtencion
+         }
+
+         const [data, config] = autorizationJSON(payload)
          const response = await axios.post(apiUrl + '/Diagnostico/Revision', data, config)
          await NotificacionesModal.ExitosoSimple(response.data)
          return true

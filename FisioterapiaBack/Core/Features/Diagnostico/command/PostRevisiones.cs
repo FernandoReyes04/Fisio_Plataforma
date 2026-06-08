@@ -27,6 +27,13 @@ public record PostRevisiones() : IRequest
     public string DiagnosticoId { get; set; }
     public string ServicioId { get; set; }
     public ExploracionReview Exploration { get; set; }
+
+    /// <summary>
+    /// Fecha real de la atención. Opcional — si no se envía, se usa la fecha
+    /// actual del servidor. Restricción: no puede ser futura ni tener más de
+    /// 48 horas de antigüedad.
+    /// </summary>
+    public DateTime? FechaAtencion { get; set; }
 }
 
 public class PostRevisionHandler : IRequestHandler<PostRevisiones>
@@ -48,6 +55,27 @@ public class PostRevisionHandler : IRequestHandler<PostRevisiones>
         await _validator.AddRevision(request);
         await _existResource.ExistServicio(request.ServicioId);
         await _existResource.ExistDiagnostico(request.DiagnosticoId);
+
+        // Resolver la fecha efectiva de la atención
+        DateTime ahora = FormatDate.DateLocal();
+        DateTime fechaEfectiva;
+
+        if (request.FechaAtencion.HasValue)
+        {
+            DateTime fechaCustom = request.FechaAtencion.Value;
+
+            if (fechaCustom > ahora)
+                throw new BadRequestException("La fecha de atención no puede ser una fecha futura.");
+
+            if ((ahora - fechaCustom).TotalHours > 48)
+                throw new BadRequestException("La fecha de atención no puede tener más de 48 horas de antigüedad.");
+
+            fechaEfectiva = fechaCustom;
+        }
+        else
+        {
+            fechaEfectiva = ahora;
+        }
         
         using (var transaction = await _context.Database.BeginTransactionAsync())
         {
@@ -74,8 +102,8 @@ public class PostRevisionHandler : IRequestHandler<PostRevisiones>
                 {
                     Notas = request.Notas,
                     FolioPago = request.FolioPago,
-                    Fecha = FormatDate.DateLocal(),
-                    Hora = new TimeSpan(FormatDate.DateLocal().Hour, FormatDate.DateLocal().Minute, 0),
+                    Fecha = fechaEfectiva.Date,
+                    Hora = new TimeSpan(fechaEfectiva.Hour, fechaEfectiva.Minute, 0),
                     DiagnosticoId = request.DiagnosticoId.HashIdInt(),
                     ExploracionFisicaId = exploracion.ExploracionFisicaId,
                     ServicioId = request.ServicioId.HashIdInt()
