@@ -14,11 +14,9 @@ let folio = ref(null)
 let notas = ref(null)
 let fechaAtencion = ref('')
 
-// Límites del picker: máximo = ahora, mínimo = hace 48 horas
+// Solo limita que no sea futura — sin límite hacia el pasado
 const ahora = new Date()
 const maxFechaAtencion = ahora.toISOString().slice(0, 16)
-const hace48h = new Date(ahora.getTime() - 48 * 60 * 60 * 1000)
-const minFechaAtencion = hace48h.toISOString().slice(0, 16)
 
 //SIGNOS VITALES
 let temperaturaR = ref(null)
@@ -65,8 +63,6 @@ const emit = defineEmits(['salir'])
 const subirRevision = async () =>{
     spinner.value = true
 
-    // Si el usuario seleccionó una fecha, convertirla a ISO. Si no, se envía null
-    // y el servidor usa la fecha actual.
     const isoFecha = fechaAtencion.value
         ? new Date(fechaAtencion.value).toISOString()
         : null
@@ -100,7 +96,6 @@ const subirRevision = async () =>{
                     class="input-primary"
                     v-model="fechaAtencion"
                     :max="maxFechaAtencion"
-                    :min="minFechaAtencion"
                 />
                 <p>Comprobante de pago <span class="text-blue-600">*</span></p>
                 <input type="text" class="input-primary" placeholder="Escribe aqui el folio de pago" v-model="folio">

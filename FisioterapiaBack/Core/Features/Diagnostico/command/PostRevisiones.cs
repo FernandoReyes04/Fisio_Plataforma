@@ -67,9 +67,6 @@ public class PostRevisionHandler : IRequestHandler<PostRevisiones>
             if (fechaCustom > ahora)
                 throw new BadRequestException("La fecha de atención no puede ser una fecha futura.");
 
-            if ((ahora - fechaCustom).TotalHours > 48)
-                throw new BadRequestException("La fecha de atención no puede tener más de 48 horas de antigüedad.");
-
             fechaEfectiva = fechaCustom;
         }
         else
