@@ -8,15 +8,9 @@ let citasAgendadas = ref([])
 let pacientes = ref([])
 let calendar = ref(null)
 let date = new Date()
-
 let loader = ref(false)
 let year = date.getFullYear()
 let month = date.getMonth()
-/*let citas = ref([
-    new Date(year, month, 22),
-    new Date(year, month, 24),
-    new Date(year, month, 26),
-    new Date(year, month, 31)])*/
 
 let attributes = ref([
     {
@@ -33,49 +27,37 @@ let attributes = ref([
             color: 'blue',
             fillMode: 'light',
         },
-       // dates: citas.value
     },
-    /*{
-        key: 'Any',
-        color:'white',
-        // Attribute type definitions
-        content: false,   // Boolean, String, Object
-        highlight: false,  // Boolean, String, Object
-        //dot: true,       // Boolean, String, Object
-        //bar: true,         Boolean, String, Object
-        popover:
-            {
-            label: 'Ayuda',
-            visibility: 'focus'
-            }, // Only objects allowed
-        // Your custom data object for later access, if needed
-        customData: { },
-        // We also need some dates to know where to display the attribute
-        // We use a single date here, but it could also be an array of dates,
-        //  a date range or a complex date pattern.
-        dates: new Date(year, month, 3),
-        // Think of `order` like `z-index`
-        order: 0
-    },*/
-]);
+])
 
-onMounted(()=>{
+let fechaSeleccionada = ref(null)
+
+onMounted(() => {
     diaSeleccionado({ date: date.toDateString() })
 })
-const hoy = () =>{
+
+const hoy = () => {
     calendar.value.move(new Date())
     diaSeleccionado({ date: date.toDateString() })
 }
 
 const diaSeleccionado = async (day) => {
     loader.value = true
-    const date = new Date(day.date).toISOString()
-    let response = await calendarioCommand.getDataFecha(date)
+    fechaSeleccionada.value = day.date
+    const isoDate = new Date(day.date).toISOString()
+    let response = await calendarioCommand.getDataFecha(isoDate)
     citasAgendadas.value = response.citas
     pacientes.value = response.pacientes
     loader.value = false
 }
 
+// Cambia el estado de una cita y recarga el día seleccionado
+const cambiarEstado = async (citaId, estado) => {
+    const ok = await calendarioCommand.cambiarEstadoCita(citaId, estado)
+    if (ok && fechaSeleccionada.value) {
+        await diaSeleccionado({ date: fechaSeleccionada.value })
+    }
+}
 </script>
 
 <template>
@@ -95,8 +77,8 @@ const diaSeleccionado = async (day) => {
         </div>
         <div class="w-1/2 telefono:w-full">
             <h1 class="text-gray-500 font-semibold">Citas de la fecha seleccionada</h1>
-            <div v-if="loader" class="flex gap-4 w-12/12 ">
-                <div  v-for="load in 3"
+            <div v-if="loader" class="flex gap-4 w-12/12">
+                <div v-for="load in 3"
                      class="flex-none bg-gray-300 animate-pulse h-[130px] w-[280px] telefono:w-[180px] telefono:h-[150px] max-w-sm rounded-lg">
                 </div>
             </div>
@@ -110,12 +92,32 @@ const diaSeleccionado = async (day) => {
                 <span class="text-gray-500">No hay citas registradas en el día seleccionado</span>
             </div>
             <div v-else class="style_scroll flex gap-4 w-12/12 overflow-x-auto py-2">
-                <div class="relative flex flex-col items-center" v-for="cita in citasAgendadas">
-                    <CardCita :nombre="cita.paciente" :foto="cita.foto" :hora="cita.hora.substring(0,5)" :numero="cita.telefono"/>
-                    <span class="absolute bottom-0 right-0 mb-2 mr-2 border p-1 rounded text-white text-sm"
-                    :class="{'bg-red-500': cita.status === 3, 'bg-gray-500': cita.status === 1, 'bg-yellow-500': cita.status === 2, 'bg-blue-500': cita.status === 4}">
-                       {{ cita.status === 1 ? 'Pendiente' : cita.status === 2 ? 'Inasistencia' : cita.status === 3 ? 'Cancelada' : 'Concluida' }}
-                    </span>
+                <div class="flex flex-col items-center gap-1" v-for="cita in citasAgendadas">
+                    <div class="relative">
+                        <CardCita :nombre="cita.paciente" :foto="cita.foto" :hora="cita.hora.substring(0,5)" :numero="cita.telefono"/>
+                        <span class="absolute bottom-0 right-0 mb-2 mr-2 border p-1 rounded text-white text-sm"
+                            :class="{
+                                'bg-gray-500':  cita.status === 1,
+                                'bg-yellow-500': cita.status === 2,
+                                'bg-red-500':   cita.status === 3,
+                                'bg-blue-500':  cita.status === 4
+                            }">
+                            {{ cita.status === 1 ? 'Pendiente' : cita.status === 2 ? 'Inasistencia' : cita.status === 3 ? 'Cancelada' : 'Concluida' }}
+                        </span>
+                    </div>
+                    <!-- Botones de cambio de estado — solo visibles si la cita está Pendiente -->
+                    <div v-if="cita.status === 1" class="flex gap-1 w-full">
+                        <button
+                            @click="cambiarEstado(cita.citasId, 2)"
+                            class="flex-1 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold py-1 rounded transition">
+                            Inasistencia
+                        </button>
+                        <button
+                            @click="cambiarEstado(cita.citasId, 4)"
+                            class="flex-1 bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold py-1 rounded transition">
+                            Concluida
+                        </button>
+                    </div>
                 </div>
             </div>
             <h1 class="text-gray-500 font-semibold">Pacientes nuevos de la fecha seleccionada</h1>

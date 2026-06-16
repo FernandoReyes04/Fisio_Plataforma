@@ -18,8 +18,17 @@ export const pacientesQueries = {
    //Buscador de pacientes
    getBuscador: async (pagina, nombre, estado) => {
       try {
-         const response = await axios.get(apiUrl + '/Pacientes/Buscador?pagina=' + pagina + '&nombre=' + nombre + '&onlyActive=' + estado, autorization())
-
+         const response = await axios.get(
+            apiUrl + '/Pacientes/Buscador?pagina=' + pagina + '&nombre=' + nombre + '&onlyActive=' + estado,
+            {
+               headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${localStorage.getItem(import.meta.env.VITE_CREDENCIALES)}`,
+                  'Cache-Control': 'no-store',
+                  'Pragma': 'no-cache'
+               }
+            }
+         )
          return response.data
       } catch (error) {
          console.log(error)

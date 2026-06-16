@@ -8,12 +8,12 @@ import Fisiotepeutas from '@/components/InicioComponents/Fisiotepeutas.vue'
 import { pacientesQueries } from '@/api/pacientes/pacientesQueries.js'
 import { notifiacionApi } from '@/helpers/notifications/ConsumoAlertas.js'
 import { clavesStore } from '@/stores/clavesStore.js'
+import { calendarioCommand } from '@/api/calendario/calendario.js'
 
 let saludo = ref('')
 let nombre = ref(localStorage.getItem('Usuario'))
 let citas = ref([])
 let loader = ref(false)
-
 let date = ref(null)
 
 onMounted(() => {
@@ -27,10 +27,8 @@ watch(() => clavesStore().modificacionCita, async () => {
 })
 
 const scheduleTime = () => {
-    //clavesStore().setVigencia(date.value) // Actualiza la fecha
-    //clavesStore().programarEjecucion() // Ejecuta el temporizador
-    clavesStore().setVigencia(date.value) // Agrega la nueva fecha
-    clavesStore().programarEjecucion(date.value) // Ejecuta el temporizador
+    clavesStore().setVigencia(date.value)
+    clavesStore().programarEjecucion(date.value)
 }
 
 const Saludar = () => {
@@ -51,11 +49,18 @@ const ModificacionCita = async () => {
     date.value = citas.value.length == 0 ? null : new Date(citas.value[0].fecha).toISOString().substring(0, 10) + 'T' + citas.value[0].hora
     scheduleTime()
 }
+
+// Marca la cita como inasistencia y recarga la lista.
+// Si el paciente acumula 3 inasistencias, el backend lo da de baja automáticamente.
+const registrarInasistencia = async (citaId) => {
+    const ok = await calendarioCommand.cambiarEstadoCita(citaId, 2)
+    if (ok) await citasDia()
+}
 </script>
 
 <template>
     <header class="flex flex-col md:flex-row items-center justify-between mb-5">
-        <section class="flex telefono:flex-col items-center  gap-3">
+        <section class="flex telefono:flex-col items-center gap-3">
             <h1 class="text-xl font-bold m-0">{{ saludo }}, {{ nombre }} <span>👋</span></h1>
             <p class="text-gray-700 font-semibold">Los datos mostrados se actualizan en tiempo real</p>
         </section>
@@ -76,19 +81,33 @@ const ModificacionCita = async () => {
                     </svg>
                     <span class="text-gray-500">No hay citas pendientes para este día</span>
                 </div>
-                <CardCita v-else v-for="cita in citas" :foto="cita.foto" :nombre="cita.nombre"
-                          :hora="cita.hora.substring(0,5)" :numero="cita.telefono"
-                          @click="notifiacionApi.accionCita(cita.nombre,cita.pacienteId,cita.fecha,cita.hora, cita.motivo, cita.citasId)" />
+
+                <!-- Wrapper por cita: CardCita + botón Inasistencia -->
+                <div v-else v-for="cita in citas" class="relative flex-none flex flex-col items-center gap-1">
+                    <CardCita
+                        :foto="cita.foto"
+                        :nombre="cita.nombre"
+                        :hora="cita.hora.substring(0,5)"
+                        :numero="cita.telefono"
+                        @click="notifiacionApi.accionCita(cita.nombre, cita.pacienteId, cita.fecha, cita.hora, cita.motivo, cita.citasId)"
+                    />
+                    <!-- Botón fuera del <a> de CardCita para evitar propagación -->
+                    <button
+                        @click.stop="registrarInasistencia(cita.citasId)"
+                        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold py-1 rounded transition">
+                        Inasistencia
+                    </button>
+                </div>
+
             </div>
         </section>
-        <section
-            class="flex telefono:flex-col py-2 style_scroll overflow-x-auto gap-4">
+        <section class="flex telefono:flex-col py-2 style_scroll overflow-x-auto gap-4">
             <NuevosUsuarios />
             <CitasChart />
             <Fisiotepeutas />
             <div class="w-full">
-             <p class="text-gray-600 mb-1 font-semibold">Últimos pacientes agregados</p>
-             <UltimosUsuarios />
+                <p class="text-gray-600 mb-1 font-semibold">Últimos pacientes agregados</p>
+                <UltimosUsuarios />
             </div>
         </section>
     </main>
